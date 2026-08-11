@@ -35,8 +35,9 @@ copy .env.example .env
 …a następnie otworzyć `server/.env` i uzupełnić wartości:
 
 ```env
-# Connection string z MongoDB Atlas — login i hasło są jego częścią.
-MONGODB_URI=mongodb+srv://TWOJ_LOGIN:TWOJE_HASLO@cluster0.xxxxx.mongodb.net/sketchstreak
+# OPCJONALNE: connection string z MongoDB Atlas — login i hasło są jego częścią.
+# Bez tej zmiennej aplikacja działa w pełni lokalnie (patrz niżej).
+# MONGODB_URI=mongodb+srv://TWOJ_LOGIN:TWOJE_HASLO@cluster0.xxxxx.mongodb.net/sketchstreak
 
 # Losowy sekret do podpisywania tokenów JWT (nie udostępniaj go nikomu).
 JWT_SECRET=wpisz_tu_losowy_dlugi_ciag_znakow
@@ -45,7 +46,10 @@ JWT_SECRET=wpisz_tu_losowy_dlugi_ciag_znakow
 PORT=4000
 ```
 
-> 💡 `MONGODB_URI` uzyskasz zakładając darmowy klaster **M0** na [MongoDB Atlas](https://www.mongodb.com/atlas). Jeśli zostawisz tę zmienną pustą, aplikacja uruchomi bazę w pamięci — wszystko zadziała, ale dane znikną po restarcie serwera.
+> 💡 Aplikacja działa w dwóch trybach:
+>
+> - **Lokalny (domyślny)** — bez `MONGODB_URI` wszystkie dane zapisują się na dysku: metadane w `server/data/db.json`, a rysunki jako zwykłe pliki obrazków w `server/data/uploads/`. Nic nie znika po restarcie i nie potrzebujesz żadnego konta w chmurze.
+> - **MongoDB** — po ustawieniu `MONGODB_URI` dane trafiają do bazy MongoDB. Darmowy klaster **M0** założysz na [MongoDB Atlas](https://www.mongodb.com/atlas).
 
 ## Uruchomienie
 

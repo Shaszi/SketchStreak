@@ -1,7 +1,6 @@
 import 'dotenv/config'
 import express from 'express'
 import cors from 'cors'
-import mongoose from 'mongoose'
 import bcrypt from 'bcryptjs'
 import {
   User,
@@ -325,30 +324,30 @@ app.use((err, req, res, next) => {
 // ---------- start ----------
 
 async function connectDb() {
-  if (process.env.MONGODB_URI) {
-    try {
-      await mongoose.connect(process.env.MONGODB_URI)
-    } catch (err) {
-      // Resolver Node'a (c-ares) potrafi na Windowsie trafić w serwer DNS,
-      // który odrzuca zapytania SRV wymagane przez mongodb+srv:// —
-      // wtedy przełączamy się na publiczne DNS-y i próbujemy raz jeszcze.
-      if (err?.syscall !== 'querySrv') throw err
-      console.warn(
-        'Zapytanie DNS SRV odrzucone — ponawiam przez publiczne DNS (1.1.1.1, 8.8.8.8)…',
-      )
-      const dns = await import('node:dns')
-      dns.setServers(['1.1.1.1', '8.8.8.8'])
-      await mongoose.connect(process.env.MONGODB_URI)
-    }
-    console.log('Połączono z MongoDB (MONGODB_URI)')
+  if (!process.env.MONGODB_URI) {
+    // Tryb lokalny: dane w server/data/db.json, obrazki w server/data/uploads/.
+    // Magazyn inicjalizuje się przy imporcie modeli (localdb.js).
+    console.log(
+      'Brak MONGODB_URI — dane zapisuję lokalnie w server/data/ (db.json + uploads/)',
+    )
     return
   }
-  // Tryb deweloperski bez skonfigurowanej bazy: MongoDB w pamięci.
-  // Dane znikają po restarcie — na produkcji ustaw MONGODB_URI (np. MongoDB Atlas).
-  const { MongoMemoryServer } = await import('mongodb-memory-server')
-  const mem = await MongoMemoryServer.create()
-  await mongoose.connect(mem.getUri())
-  console.log('Uwaga: brak MONGODB_URI — używam bazy w pamięci (dane tymczasowe)')
+  const { default: mongoose } = await import('mongoose')
+  try {
+    await mongoose.connect(process.env.MONGODB_URI)
+  } catch (err) {
+    // Resolver Node'a (c-ares) potrafi na Windowsie trafić w serwer DNS,
+    // który odrzuca zapytania SRV wymagane przez mongodb+srv:// —
+    // wtedy przełączamy się na publiczne DNS-y i próbujemy raz jeszcze.
+    if (err?.syscall !== 'querySrv') throw err
+    console.warn(
+      'Zapytanie DNS SRV odrzucone — ponawiam przez publiczne DNS (1.1.1.1, 8.8.8.8)…',
+    )
+    const dns = await import('node:dns')
+    dns.setServers(['1.1.1.1', '8.8.8.8'])
+    await mongoose.connect(process.env.MONGODB_URI)
+  }
+  console.log('Połączono z MongoDB (MONGODB_URI)')
 }
 
 connectDb()
